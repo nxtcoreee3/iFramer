@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>iFramer</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #00ff9c;
+      font-family: "Courier New", monospace;
+    }
+
+    .terminal {
+      padding: 20px;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .line {
+      margin: 4px 0;
+      white-space: pre-wrap;
+    }
+
+    .input-line {
+      display: flex;
+    }
+
+    .prompt {
+      margin-right: 6px;
+    }
+
+    input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #00ff9c;
+      font-family: inherit;
+      font-size: 14px;
+      flex: 1;
+    }
+
+    .frames {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 10px;
+      padding: 10px;
+      background: #020202;
+    }
+
+    .frame-box {
+      border: 1px solid #00ff9c33;
+    }
+
+    .frame-header {
+      font-size: 11px;
+      padding: 4px 6px;
+      background: #001a12;
+      border-bottom: 1px solid #00ff9c33;
+    }
+
+    iframe {
+      width: 100%;
+      height: 220px;
+      border: none;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="terminal" id="terminal"></div>
+<div class="frames" id="frames"></div>
+
+<script>
+const terminal = document.getElementById("terminal");
+
+function print(text = "") {
+  const line = document.createElement("div");
+  line.className = "line";
+  line.textContent = text;
+  terminal.appendChild(line);
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+function newInput() {
+  const wrapper = document.createElement("div");
+  wrapper.className = "input-line";
+
+  const prompt = document.createElement("span");
+  prompt.className = "prompt";
+  prompt.textContent = "root@iframer:~$";
+
+  const input = document.createElement("input");
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const value = input.value;
+      wrapper.remove();
+      print("root@iframer:~$ " + value);
+      handleCommand(value);
+      newInput();
+    }
+  });
+
+  wrapper.appendChild(prompt);
+  wrapper.appendChild(input);
+  terminal.appendChild(wrapper);
+  input.focus();
+}
+
+function handleCommand(cmd) {
+  const args = cmd.split(" ");
+
+  switch(args[0]) {
+    case "help":
+      print("Available commands:");
+      print(" run <url> <count>  - launch iframes");
+      print(" clear              - clear frames");
+      print(" exit               - clear terminal");
+      print(" about              - info");
+      break;
+
+    case "run":
+      if (!args[1] || !args[2]) {
+        print("Usage: run <url> <count>");
+        return;
+      }
+
+      let url = args[1];
+      let count = parseInt(args[2]);
+
+      if (!url.startsWith("http")) {
+        url = "https://" + url;
+      }
+
+      const container = document.getElementById("frames");
+      container.innerHTML = "";
+
+      print("Launching " + count + " sessions...");
+
+      for (let i = 1; i <= count; i++) {
+        const box = document.createElement("div");
+        box.className = "frame-box";
+
+        const header = document.createElement("div");
+        header.className = "frame-header";
+        header.textContent = "session_" + i;
+
+        const iframe = document.createElement("iframe");
+        iframe.src = url;
+
+        box.appendChild(header);
+        box.appendChild(iframe);
+        container.appendChild(box);
+      }
+
+      print("Done.");
+      break;
+
+    case "clear":
+      document.getElementById("frames").innerHTML = "";
+      print("Frames cleared.");
+      break;
+
+    case "exit":
+      terminal.innerHTML = "";
+      break;
+
+    case "about":
+      print("iFramer v1.0");
+      print("made by nxtcoreee3");
+      break;
+
+    default:
+      print("Command not found: " + cmd);
+  }
+}
+
+// ASCII art banner
+print("██╗███████╗██████╗  █████╗ ███╗   ███╗███████╗██████╗");
+print("██║██╔════╝██╔══██╗██╔══██╗████╗ ████║██╔════╝██╔══██╗");
+print("██║█████╗  ██████╔╝███████║██╔████╔██║█████╗  ██████╔╝");
+print("██║██╔══╝  ██╔══██╗██╔══██║██║╚██╔╝██║██╔══╝  ██╔══██╗");
+print("██║██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗██║  ██║");
+print("╚═╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝");
+print("");
+print("iFramer terminal initialized...");
+print("type 'help' to begin");
+print("");
+
+newInput();
+</script>
+
+</body>
+</html>
